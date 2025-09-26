@@ -1,14 +1,15 @@
-#!name=🔓 Locket Premium Unlock by Thành Quân
-#!desc=Mở khóa Gold / Premium cho ứng dụng Locket thông qua RevenueCat. Module sạch và tối ưu bởi Thành Quân.
-#!author=Thành Quân
+#!name=ThanhQuan_Locket_Gold
+#!desc=Script mở khóa Premium Locket
+#!author=ThanhQuan
 #!version=1.0.2
+#!date=2025-09-26
 
 [Script]
-# 📬 Giả lập thuê bao Premium trong phản hồi từ RevenueCat
-revenuecat = type=http-response, pattern=^https:\/\/api\.revenuecat\.com\/.+\/(receipts$|subscribers\/[^/]+$), script-path=https://raw.githubusercontent.com/anthanhquan/premium/main/Locket_ThanhQuan.js, requires-body=true, max-size=-1, timeout=60
+# ✨ Unlock Premium Locket via RevenueCat
+revenuecat = type=http-response, pattern=^https:\/\/api\.revenuecat\.com\/.+\/(receipts$|subscribers\/[^/]+$), script-path=https://raw.githubusercontent.com/anthanhquan/premium/main/ThanhQuan_Locket_Gold.js, requires-body=true, max-size=-1, timeout=60
 
-# ✂️ Xóa header ETag trong request để tránh bị phát hiện
-deleteHeader = type=http-request, pattern=^https:\/\/api\.revenuecat\.com\/.+\/(receipts|subscribers), script-path=https://raw.githubusercontent.com/anthanhquan/premium/main/Locket_ThanhQuan.js, timeout=60
+# 🧹 Xoá header để tránh bị phát hiện
+deleteHeader = type=http-request, pattern=^https:\/\/api\.revenuecat\.com\/.+\/(receipts|subscribers), script-path=https://raw.githubusercontent.com/anthanhquan/premium/main/ThanhQuan_Locket_Gold.js, timeout=60
 
 [MITM]
 hostname = %APPEND% api.revenuecat.com
