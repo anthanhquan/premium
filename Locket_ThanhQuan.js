@@ -1,11 +1,10 @@
 /***********************************************
  *  Premium Unlock Script - Locket & RevenueCat
- *  🛠️ By Thành Quân
- *  📌 Version: V1.0.2 (Clean & Optimized)
+ *  🛠️ By ThanhQuan | Build: V1.0.2 (2025-09-26)
  ***********************************************/
 
 // =================== [PHẦN 1] - XÓA HEADER =================== //
-// Mục đích: xóa header "X-RevenueCat-ETag" để tránh bị phát hiện
+// 👉 Mục đích: xóa header "X-RevenueCat-ETag" để tránh bị phát hiện cache
 
 function setHeaderValue(headers, key, value) {
   const lowerKey = key.toLowerCase();
@@ -16,7 +15,7 @@ function setHeaderValue(headers, key, value) {
   }
 }
 
-// Nếu script được gọi khi gửi request
+// Nếu script chạy khi gửi request
 if (typeof $request !== "undefined") {
   let modifiedHeaders = $request.headers;
   setHeaderValue(modifiedHeaders, "X-RevenueCat-ETag", "");
@@ -24,71 +23,69 @@ if (typeof $request !== "undefined") {
 }
 
 // =================== [PHẦN 2] - SỬA RESPONSE =================== //
-// Mục đích: giả lập thuê bao Premium / Gold để mở khóa app
+// 👉 Mục đích: giả lập thuê bao Premium / Gold để mở khóa ứng dụng
 
 if (typeof $response !== "undefined") {
-  // Lấy User-Agent từ request để xác định ứng dụng
+  // Lấy User-Agent để xác định ứng dụng gọi API RevenueCat
   const ua = $request.headers["User-Agent"] || $request.headers["user-agent"];
 
   // Parse body JSON từ phản hồi gốc của RevenueCat
   let obj = JSON.parse($response.body);
 
-  // Thêm thông điệp cá nhân (không ảnh hưởng đến app)
-  obj.Attention = "🎉 Chúc mừng bạn! Script by Thành Quân.";
+  // Thêm thông điệp cá nhân (không ảnh hưởng đến logic)
+  obj.Attention = "🎉 Script unlock Premium by ThanhQuan – Không chia sẻ công khai!";
 
-  // Đối tượng thuê bao giả (subscription info)
-  const subscriptionInfo = {
-    is_sandbox: false,
-    ownership_type: "PURCHASED",             // ✅ Đã mua
+  // =================== THUÊ BAO GIẢ =================== //
+  const thanhquanSubscription = {
+    is_sandbox: false,                       // Không phải môi trường test
+    ownership_type: "PURCHASED",             // ✅ Đã mua gói
     billing_issues_detected_at: null,
-    period_type: "normal",                   // Gói thuê bao thường
-    expires_date: "2099-12-18T01:04:17Z",   // 🔥 Hết hạn xa trong tương lai
+    period_type: "normal",                   // Gói thuê bao chuẩn
+    expires_date: "2099-12-18T01:04:17Z",   // ⏰ Hết hạn rất xa (2099)
     grace_period_expires_date: null,
     unsubscribe_detected_at: null,
-    original_purchase_date: "2024-07-28T01:04:18Z",
-    purchase_date: "2024-07-28T01:04:17Z",
-    store: "app_store"                       // Mua từ App Store
+    original_purchase_date: "2025-09-26T01:04:18Z", // 📅 Ngày mua ban đầu (mới nhất)
+    purchase_date: "2025-09-26T01:04:17Z",          // 📅 Ngày mua (mới nhất)
+    store: "app_store"                      // Nguồn mua: App Store
   };
 
-  // Đối tượng entitlement (quyền truy cập)
-  const entitlementInfo = {
+  // =================== ENTITLEMENT GIẢ =================== //
+  const thanhquanEntitlement = {
     grace_period_expires_date: null,
-    purchase_date: "2024-07-28T01:04:17Z",
-    product_identifier: "com.thanhquan.premium.yearly",  // ✅ đổi tên sạch
+    purchase_date: "2025-09-26T01:04:17Z",           // 📅 Ngày mua
+    product_identifier: "com.ohoang7.premium.yearly", // ⚠️ GIỮ NGUYÊN để đảm bảo tương thích
     expires_date: "2099-12-18T01:04:17Z"
   };
 
-  // Bảng ánh xạ: xác định entitlement theo ứng dụng (User-Agent)
+  // =================== ÁNH XẠ ỨNG DỤNG =================== //
   const mapping = {
     "%E8%BD%A6%E7%A5%A8%E7%A5%A8": ["vip+watch_vip"], // App Trung Quốc
-    "Locket": ["Gold"]                               // App Locket
+    "Locket": ["Gold"]                                // App Locket
   };
 
-  // Kiểm tra ứng dụng hiện tại bằng cách so khớp chuỗi trong User-Agent
+  // Kiểm tra xem User-Agent có chứa chuỗi ứng dụng nào không
   const matchedApp = Object.keys(mapping).find(key => ua.includes(key));
 
   if (matchedApp) {
-    // Nếu có khớp trong bảng ánh xạ
+    // Nếu trùng khớp → ánh xạ entitlement tương ứng
     const [entitlementName, productID] = mapping[matchedApp];
 
     if (productID) {
-      // Gán gói thuê bao theo product ID được ánh xạ
-      entitlementInfo.product_identifier = productID;
-      obj.subscriber.subscriptions[productID] = subscriptionInfo;
+      thanhquanEntitlement.product_identifier = productID;
+      obj.subscriber.subscriptions[productID] = thanhquanSubscription;
     } else {
-      // Nếu không có product ID cụ thể, dùng mặc định
-      obj.subscriber.subscriptions["com.thanhquan.premium.yearly"] = subscriptionInfo;
+      obj.subscriber.subscriptions["com.ohoang7.premium.yearly"] = thanhquanSubscription;
     }
 
-    // Gán entitlement (quyền sử dụng tính năng cao cấp)
-    obj.subscriber.entitlements[entitlementName] = entitlementInfo;
+    // Gán quyền truy cập Premium cho app
+    obj.subscriber.entitlements[entitlementName] = thanhquanEntitlement;
 
   } else {
-    // Nếu không khớp app nào → dùng giá trị mặc định là "pro"
-    obj.subscriber.subscriptions["com.thanhquan.premium.yearly"] = subscriptionInfo;
-    obj.subscriber.entitlements["pro"] = entitlementInfo;
+    // Nếu không khớp ứng dụng nào → dùng mặc định là "pro"
+    obj.subscriber.subscriptions["com.ohoang7.premium.yearly"] = thanhquanSubscription;
+    obj.subscriber.entitlements["pro"] = thanhquanEntitlement;
   }
 
-  // Trả về phản hồi đã chỉnh sửa cho ứng dụng
+  // Trả lại JSON đã chỉnh sửa cho ứng dụng
   $done({ body: JSON.stringify(obj) });
 }
